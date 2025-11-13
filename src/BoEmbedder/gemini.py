@@ -22,6 +22,7 @@ def configure_gemini(api_key: Optional[str] = None):
 
 def embed_texts_batch(
     texts: List[str],
+    api_key: str,
     batch_size: int = 10,
     max_texts: Optional[int] = None,
     model: str = "gemini-embedding-001",
@@ -37,6 +38,7 @@ def embed_texts_batch(
     
     Args:
         texts: List of text strings to embed
+        api_key: Gemini api key
         batch_size: Number of texts to process in each batch
         max_texts: Maximum number of texts to process (None for all)
         model: Gemini model to use for embeddings
@@ -48,6 +50,7 @@ def embed_texts_batch(
     Returns:
         List of embeddings (each embedding is a list of floats)
     """
+    configure_gemini(api_key)
     # Limit texts if max_texts is specified
     if max_texts is not None:
         texts = texts[:max_texts]
