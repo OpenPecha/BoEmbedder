@@ -111,8 +111,4 @@ def embed_texts_batch(
     return all_embeddings
 
 
-if __name__ == "__main__":
-    texts = Path("./tests/data/texts.txt").read_text().splitlines()
-    configure_gemini()
-    embeddings = embed_texts_batch(texts, batch_size=3, max_texts=100, show_progress=True)
-    print(embeddings)
+

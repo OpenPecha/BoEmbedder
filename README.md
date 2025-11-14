@@ -1,148 +1,171 @@
-# README
+# BoEmbedder
 
-> **Note:** This readme template is based on one from the [Good Docs Project](https://thegooddocsproject.dev). You can find it and a guide to filling it out [here](https://gitlab.com/tgdp/templates/-/tree/main/readme). (_Erase this note after filling out the readme._)
+A Python library for generating text embeddings using Google's Gemini API with batching, retry logic, and progress tracking.
 
-<h1 align="center">
-  <br>
-  <a href="https://openpecha.org"><img src="https://avatars.githubusercontent.com/u/82142807?s=400&u=19e108a15566f3a1449bafb03b8dd706a72aebcd&v=4" alt="OpenPecha" width="150"></a>
-  <br>
-</h1>
+## Installation
 
-## _Project Name_
-_The project name should match its code's capability so that new users can easily understand what it does._
+### From GitHub
 
-## Owner(s)
+```bash
+pip install git+https://github.com/OpenPecha/BoEmbedder.git
+```
 
-_Change to the owner(s) of the new repo. (This template's owners are:)_
-- [@ngawangtrinley](https://github.com/ngawangtrinley)
-- [@mikkokotila](https://github.com/mikkokotila)
-- [@evanyerburgh](https://github.com/evanyerburgh)
+### From Source
 
+```bash
+# Clone the repository
+git clone https://github.com/OpenPecha/BoEmbedder.git
+cd BoEmbedder
 
-## Table of contents
-<p align="center">
-  <a href="#project-description">Project description</a> •
-  <a href="#who-this-project-is-for">Who this project is for</a> •
-  <a href="#project-dependencies">Project dependencies</a> •
-  <a href="#instructions-for-use">Instructions for use</a> •
-  <a href="#contributing-guidelines">Contributing guidelines</a> •
-  <a href="#additional-documentation">Additional documentation</a> •
-  <a href="#how-to-get-help">How to get help</a> •
-  <a href="#terms-of-use">Terms of use</a>
-</p>
-<hr>
+# Install in development mode
+pip install -e .
 
-## Project description
-_Use one of these:_
+# Or install with development dependencies
+pip install -e ".[dev]"
+```
 
-With _Project Name_ you can _verb_ _noun_...
+## Usage
 
-_Project Name_ helps you _verb_ _noun_...
+### Basic Example
 
+```python
+from BoEmbedder.gemini import embed_texts_batch
 
-## Who this project is for
-This project is intended for _target user_ who wants to _user objective_.
+# Your texts to embed
+texts = [
+    "This is the first document.",
+    "This is the second document.",
+    "And this is the third one."
+]
 
+# Generate embeddings
+embeddings = embed_texts_batch(
+    texts=texts,
+    api_key="your-gemini-api-key",
+    batch_size=10,
+    model="gemini-embedding-001",
+    output_dimensionality=768
+)
 
-## Project dependencies
-Before using _Project Name_, ensure you have:
-* python _version_
-* _Prerequisite 2_
-* _Prerequisite 3..._
+print(f"Generated {len(embeddings)} embeddings")
+print(f"Each embedding has dimension: {len(embeddings[0])}")
+```
 
+### Using Environment Variables
 
-## Instructions for use
-Get started with _Project Name_ by _(write the first step a user needs to start using the project. Use a verb to start.)_.
+```python
+import os
+from BoEmbedder.gemini import embed_texts_batch
 
+# Set your API key as an environment variable
+os.environ["GOOGLE_GEMINI_KEY"] = "your-gemini-api-key"
 
-### Install _Project Name_
-1. _Write the step here._ 
+# Embed texts (API key will be read from environment)
+embeddings = embed_texts_batch(
+    texts=texts,
+    api_key=os.getenv("GOOGLE_GEMINI_KEY")
+)
+```
 
-    _Explanatory text here_ 
-    
-    _(Optional: Include a code sample or screenshot that helps your users complete this step.)_
+### Advanced Usage with Custom Parameters
 
-2. _Write the step here._
- 
-    a. _Substep 1_ 
-    
-    b. _Substep 2_
+```python
+from BoEmbedder.gemini import embed_texts_batch
 
+embeddings = embed_texts_batch(
+    texts=texts,
+    api_key="your-gemini-api-key",
+    batch_size=5,              # Process 5 texts per batch
+    max_texts=100,             # Limit to first 100 texts
+    model="gemini-embedding-001",
+    task_type="RETRIEVAL_DOCUMENT",  # Or "RETRIEVAL_QUERY", "SEMANTIC_SIMILARITY"
+    output_dimensionality=768,  # Embedding dimension
+    max_retries=3,             # Retry failed batches up to 3 times
+    show_progress=True         # Display progress bar
+)
+```
 
-### Configure _Project Name_
-1. _Write the step here._
-2. _Write the step here._
+### Configuration Only
 
+```python
+from BoEmbedder.gemini import configure_gemini
 
-### Run _Project Name_
-1. _Write the step here._
-2. _Write the step here._
+# Configure Gemini API separately
+configure_gemini(api_key="your-gemini-api-key")
 
+# Or use environment variable
+configure_gemini()  # Reads from GOOGLE_GEMINI_KEY
+```
 
-### Troubleshoot _Project Name_
-1. _Write the step here._
-2. _Write the step here._
+### Features
 
-<table>
-  <tr>
-   <td>
-    Issue
-   </td>
-   <td>
-    Solution
-   </td>
-  </tr>
-  <tr>
-   <td>
-    _Describe the issue here_
-   </td>
-   <td>
-    _Write solution here_
-   </td>
-  </tr>
-  <tr>
-   <td>
-    _Describe the issue here_
-   </td>
-   <td>
-    _Write solution here_
-   </td>
-  </tr>
-  <tr>
-   <td>
-    _Describe the issue here_
-   </td>
-   <td>
-    _Write solution here_
-   </td>
-  </tr>
-</table>
+- **Batch Processing**: Process multiple texts efficiently in configurable batch sizes
+- **Automatic Retries**: Built-in retry logic with exponential backoff and jitter
+- **Progress Tracking**: Optional progress bar using tqdm
+- **Flexible Configuration**: Support for different models, task types, and embedding dimensions
+- **Error Handling**: Robust error handling with detailed error messages
+- **Environment Variable Support**: API keys can be provided directly or via environment variables
 
+### API Reference
 
-Other troubleshooting supports:
-* _Link to FAQs_
-* _Link to runbooks_
-* _Link to other relevant support information_
+#### `embed_texts_batch()`
 
+Generate embeddings for a list of texts.
 
-## Contributing guidelines
-If you'd like to help out, check out our [contributing guidelines](/CONTRIBUTING.md).
+**Parameters:**
+- `texts` (List[str]): List of text strings to embed
+- `api_key` (str): Gemini API key
+- `batch_size` (int, optional): Number of texts per batch (default: 10)
+- `max_texts` (int, optional): Maximum number of texts to process (default: None, processes all)
+- `model` (str, optional): Gemini model name (default: "gemini-embedding-001")
+- `task_type` (str, optional): Task type for embeddings (default: "RETRIEVAL_DOCUMENT")
+- `output_dimensionality` (int, optional): Embedding dimension (default: 768)
+- `max_retries` (int, optional): Maximum retry attempts per batch (default: 3)
+- `show_progress` (bool, optional): Show progress bar (default: True)
 
+**Returns:**
+- `List[List[float]]`: List of embeddings, where each embedding is a list of floats
 
-## Additional documentation
-_Include links and brief descriptions to additional documentation._
+#### `configure_gemini()`
 
-For more information:
-* [Reference link 1](#)
-* [Reference link 2](#)
-* [Reference link 3](#)
+Configure the Gemini API client.
 
+**Parameters:**
+- `api_key` (str, optional): API key. If not provided, uses `GOOGLE_GEMINI_KEY` from environment
 
-## How to get help
-* File an issue.
-* Email us at openpecha[at]gmail.com.
-* Join our [discord](https://discord.com/invite/7GFpPFSTeA).
+## Contributing
 
+We welcome contributions! Here's how you can help:
 
-## Terms of use
-_Project Name_ is licensed under the [MIT License](/LICENSE.md).
+1. Fork the repository
+2. Create a new branch (`git checkout -b feature/your-feature`)
+3. Make your changes
+4. Run tests if available (`pytest`)
+5. Commit your changes (`git commit -am 'Add some feature'`)
+6. Push to the branch (`git push origin feature/your-feature`)
+7. Create a new Pull Request
+
+### Development Setup
+
+```bash
+# Install with development dependencies
+pip install -e ".[dev]"
+
+# Run tests
+pytest
+
+# Run with coverage
+pytest --cov=BoEmbedder
+```
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+Copyright (c) 2023 OpenPecha
+
+---
+
+**Maintained by:** [OpenPecha](https://github.com/OpenPecha)
+
+**Questions or Issues?** Please file an issue on our [GitHub Issues](https://github.com/OpenPecha/BoEmbedder/issues) page.
